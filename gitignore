@@ -1,0 +1,16 @@
+# Virtual environment - never share, it's huge and machine-specific
+venv/
+
+# Real question data - private, not cleared for public sharing
+data/
+
+# Trained model files - large binaries, regenerate locally instead
+models/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# OS junk files
+.DS_Store
+Thumbs.db

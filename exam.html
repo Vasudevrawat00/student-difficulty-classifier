@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Adaptive Assessment</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #492e6e;
+      color: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* --- Start Screen --- */
+    #start-screen h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #ffffff;
+    }
+
+    #start-screen p {
+      color: #8b8fa8;
+      margin-bottom: 32px;
+      font-size: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #8b8fa8;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 10px;
+      color: #e8e8e8;
+      font-size: 15px;
+      margin-bottom: 20px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: #6366f1;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover { background: #5254cc; }
+    .btn-primary:disabled { background: #3a3d55; cursor: not-allowed; }
+
+    /* --- Quiz Screen --- */
+    #quiz-screen { display: none; }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .band-badge {
+      background: #6366f120;
+      border: 1px solid #6366f140;
+      color: #a5b4fc;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .score-label {
+      font-size: 13px;
+      color: #8b8fa8;
+    }
+
+    .question-text {
+      font-size: 19px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: #ffffff;
+      margin-bottom: 28px;
+    }
+
+    .options-grid {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 18px;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 12px;
+      color: #e8e8e8;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.5;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: #6366f1;
+      background: #6366f110;
+    }
+
+    .option-btn .letter {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: #2a2d3a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #8b8fa8;
+      flex-shrink: 0;
+    }
+
+    .option-btn.correct {
+      border-color: #22c55e;
+      background: #22c55e10;
+    }
+
+    .option-btn.correct .letter {
+      background: #22c55e;
+      color: white;
+    }
+
+    .option-btn.wrong {
+      border-color: #ef4444;
+      background: #ef444410;
+    }
+
+    .option-btn.wrong .letter {
+      background: #ef4444;
+      color: white;
+    }
+
+    .option-btn:disabled { cursor: default; }
+
+    .feedback-row {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .feedback-row.correct { color: #22c55e; }
+    .feedback-row.wrong { color: #ef4444; }
+
+    .next-btn {
+      width: 100%;
+      padding: 14px;
+      background: #1a1d27;
+      border: 1px solid #6366f1;
+      color: #a5b4fc;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s;
+    }
+
+    .next-btn:hover { background: #6366f120; }
+
+    /* --- Report Screen --- */
+    #report-screen { display: none; }
+
+    #report-screen h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .score-big {
+      font-size: 56px;
+      font-weight: 800;
+      color: #6366f1;
+      line-height: 1;
+      margin: 20px 0 4px;
+    }
+
+    .performance-label {
+      font-size: 18px;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 28px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .stat-box {
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-box .stat-label {
+      font-size: 12px;
+      color: #8b8fa8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .stat-box .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .section-title {
+      font-size: 13px;
+      color: #8b8fa8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2d3a;
+      font-size: 14px;
+    }
+
+    .breakdown-item:last-child { border-bottom: none; }
+
+    .breakdown-item .topic-name { color: #e8e8e8; }
+
+    .breakdown-item .topic-score {
+      font-weight: 600;
+      color: #a5b4fc;
+    }
+
+    .highlight-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .highlight {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .highlight .hl-label {
+      font-size: 11px;
+      color: #8b8fa8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .highlight.strong { border-color: #22c55e40; }
+    .highlight.strong .hl-value { color: #22c55e; }
+    .highlight.weak { border-color: #ef444440; }
+    .highlight.weak .hl-value { color: #ef4444; }
+
+    .hl-value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .loading {
+      text-align: center;
+      color: #8b8fa8;
+      padding: 20px;
+      font-size: 15px;
+    }
+
+    .error-msg {
+      color: #ef4444;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <h1>Adaptive Assessment</h1>
+    <p>Questions adapt to your level as you go. Answer carefully.</p>
+
+    <label for="domain-select">Select Domain</label>
+    <select id="domain-select">
+      <option value="AIML">AIML</option>
+      <option value="Data Analyst">Data Analyst</option>
+      <option value="Full Stack MERN">Full Stack MERN</option>
+      <option value="DevOps">DevOps</option>
+      <option value="Aptitude">Aptitude</option>
+    </select>
+
+    <label for="name-input">Your Name / Student ID</label>
+    <input type="text" id="name-input" placeholder="e.g. Vasud_001" />
+
+    <div id="start-error" class="error-msg"></div>
+    <button class="btn-primary" onclick="startTest()">Begin Assessment</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen">
+    <div class="meta-row">
+      <span class="band-badge" id="band-label">Intermediate</span>
+      <span class="score-label" id="score-counter">0 / 0</span>
+    </div>
+
+    <div class="question-text" id="question-text">Loading...</div>
+
+    <div class="options-grid" id="options-grid"></div>
+
+    <div class="feedback-row" id="feedback-row">
+      <span id="feedback-text"></span>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="loadNextQuestion()">
+      Next Question →
+    </button>
+
+    <button class="btn-primary" id="finish-btn"
+      style="display:none; margin-top:12px; background:#22c55e"
+      onclick="finishTest()">
+      Finish & See Report
+    </button>
+  </div>
+
+  <!-- REPORT SCREEN -->
+  <div id="report-screen">
+    <h2>Assessment Complete</h2>
+
+    <div class="score-big" id="report-score">—</div>
+    <div class="performance-label" id="report-label">—</div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Correct</div>
+        <div class="stat-value" id="report-correct">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Final Band</div>
+        <div class="stat-value" id="report-band">—</div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <div class="highlight strong">
+        <div class="hl-label">Strongest Topic</div>
+        <div class="hl-value" id="report-strongest">—</div>
+      </div>
+      <div class="highlight weak">
+        <div class="hl-label">Weakest Topic</div>
+        <div class="hl-value" id="report-weakest">—</div>
+      </div>
+    </div>
+
+    <div class="section-title">Topic Breakdown</div>
+    <div id="topic-breakdown"></div>
+
+    <button class="btn-primary" style="margin-top:28px" onclick="location.reload()">
+      Take Another Test
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const API = "http://127.0.0.1:8000";  // change this to your ngrok URL when sharing
+
+  let sessionId = null;
+  let currentQuestion = null;
+  let totalAnswered = 0;
+  let totalCorrect = 0;
+  let pendingNext = null;  // next question returned from submit_answer
+  let questionCount = 0;
+  const MAX_QUESTIONS = 10;
+
+  async function startTest() {
+    const domain = document.getElementById("domain-select").value;
+    const name = document.getElementById("name-input").value.trim() || "student";
+    document.getElementById("start-error").textContent = "";
+
+    try {
+      const res = await fetch(`${API}/start_test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain, start_band: "Intermediate" })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        document.getElementById("start-error").textContent = err.detail || "Failed to start test.";
+        return;
+      }
+
+      const data = await res.json();
+      sessionId = data.session_id;
+      currentQuestion = data.question;
+      questionCount = 1;
+
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("quiz-screen").style.display = "block";
+      renderQuestion(currentQuestion);
+
+    } catch (e) {
+      document.getElementById("start-error").textContent = "Cannot connect to API. Is the server running?";
+    }
+  }
+
+  function renderQuestion(q) {
+    document.getElementById("band-label").textContent = q.band;
+    document.getElementById("score-counter").textContent =
+      `${totalCorrect} / ${totalAnswered} correct`;
+    document.getElementById("question-text").textContent = q.question;
+
+    const letters = ["a", "b", "c", "d"];
+    const optionTexts = [q.option_a, q.option_b, q.option_c, q.option_d];
+    const grid = document.getElementById("options-grid");
+    grid.innerHTML = "";
+
+    optionTexts.forEach((text, i) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerHTML = `<span class="letter">${letters[i].toUpperCase()}</span> ${text}`;
+      btn.onclick = () => submitAnswer(letters[i], btn);
+      grid.appendChild(btn);
+    });
+
+    document.getElementById("feedback-row").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+    document.getElementById("finish-btn").style.display = "none";
+  }
+
+  async function submitAnswer(letter, clickedBtn) {
+    // Disable all option buttons immediately
+    document.querySelectorAll(".option-btn").forEach(b => b.disabled = true);
+
+    try {
+      const res = await fetch(`${API}/submit_answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, answer: letter })
+      });
+
+      const data = await res.json();
+      totalAnswered++;
+
+      const feedback = document.getElementById("feedback-row");
+      const feedbackText = document.getElementById("feedback-text");
+
+      if (data.was_correct) {
+        totalCorrect++;
+        clickedBtn.classList.add("correct");
+        feedbackText.textContent = "✓ Correct! Moving to a harder question.";
+        feedback.className = "feedback-row correct";
+      } else {
+        clickedBtn.classList.add("wrong");
+        feedbackText.textContent = `✗ Incorrect. Correct answer was ${data.correct_answer.toUpperCase()}.`;
+        feedback.className = "feedback-row wrong";
+
+        // Highlight the correct option
+        const letters = ["a", "b", "c", "d"];
+        document.querySelectorAll(".option-btn").forEach((btn, i) => {
+          if (letters[i] === data.correct_answer) btn.classList.add("correct");
+        });
+      }
+
+      feedback.style.display = "flex";
+      pendingNext = data.next_question;
+
+      // Show next or finish button
+      if (questionCount >= MAX_QUESTIONS || !pendingNext) {
+        document.getElementById("finish-btn").style.display = "block";
+      } else {
+        document.getElementById("next-btn").style.display = "block";
+      }
+
+    } catch (e) {
+      alert("Error submitting answer. Check the server is running.");
+    }
+  }
+
+  function loadNextQuestion() {
+    if (!pendingNext) { finishTest(); return; }
+    questionCount++;
+    currentQuestion = pendingNext;
+    pendingNext = null;
+    renderQuestion(currentQuestion);
+  }
+
+  async function finishTest() {
+    document.getElementById("quiz-screen").style.display = "none";
+    document.getElementById("report-screen").style.display = "block";
+    document.getElementById("topic-breakdown").innerHTML =
+      '<div class="loading">Generating report...</div>';
+
+    try {
+      const res = await fetch(`${API}/get_report/${sessionId}`);
+      const data = await res.json();
+
+      document.getElementById("report-score").textContent = `${data.score_percent}%`;
+      document.getElementById("report-label").textContent = data.performance_label;
+      document.getElementById("report-correct").textContent =
+        `${data.correct_answers} / ${data.total_questions}`;
+      document.getElementById("report-band").textContent = data.final_difficulty_band;
+      document.getElementById("report-strongest").textContent = data.strongest_topic;
+      document.getElementById("report-weakest").textContent = data.weakest_topic;
+
+      const breakdown = document.getElementById("topic-breakdown");
+      breakdown.innerHTML = "";
+      for (const [topic, stats] of Object.entries(data.topic_breakdown)) {
+        breakdown.innerHTML += `
+          <div class="breakdown-item">
+            <span class="topic-name">${topic}</span>
+            <span class="topic-score">${stats.correct}/${stats.total} (${stats.score_percent}%)</span>
+          </div>`;
+      }
+    } catch (e) {
+      document.getElementById("topic-breakdown").innerHTML =
+        '<div class="error-msg">Could not load report. Try again.</div>';
+    }
+  }
+</script>
+</body>
+</html>

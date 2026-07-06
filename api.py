@@ -12,11 +12,22 @@ import numpy as np
 import pandas as pd
 import uuid
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.sparse import hstack
+from evaluate import calculate_report
 from recommend import AdaptiveTest
 
 app = FastAPI(title="Question Difficulty Predictor")
+
+# Allow the HTML page to call the API from any origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Load the trained model and vectorizer ONCE when the server starts,
 # not on every request -- that would be slow and wasteful.
@@ -92,6 +103,11 @@ def read_root():
     return {"message": "Question Difficulty Predictor API is running"}
 
 
+@app.get("/exam")
+def serve_exam():
+    return FileResponse("exam.html")
+
+
 @app.post("/predict", response_model=DifficultyResponse)
 def predict(request: QuestionRequest):
     features = extract_features(request.question)
@@ -133,6 +149,14 @@ def start_test(request: StartTestRequest):
         session_id=session_id,
         question=_question_row_to_out(first_question, test.current_band),
     )
+
+
+@app.get("/get_report/{session_id}")
+def get_report(session_id: str):
+    test = ACTIVE_SESSIONS.get(session_id)
+    if test is None:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    return calculate_report(test)
 
 
 @app.post("/submit_answer", response_model=SubmitAnswerResponse)

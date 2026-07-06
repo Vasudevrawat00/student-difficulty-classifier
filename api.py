@@ -4,7 +4,7 @@ api.py
 A FastAPI server that exposes the trained difficulty model as a web API.
 
 Run with: uvicorn api:app --reload
-Then visit http://10.20.0.179:8000/docs to try it interactively.
+Then visit https://wobbly-rut-sanctuary.ngrok-free.dev/docs to try it interactively.
 """
 
 import joblib
